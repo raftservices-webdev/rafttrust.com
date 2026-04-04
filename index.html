@@ -287,11 +287,13 @@
 
     /* ── Footer ──────────────────────────────────────── */
     footer {
-      height: var(--footer-h);
+      height: auto;
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 0 40px;
+      gap: 6px;
+      padding: 16px 40px 14px;
       background: var(--crowl-bg);
       position: relative;
       z-index: 50;
@@ -325,19 +327,17 @@
     }
 
     .footer-credit {
-      position: absolute;
-      bottom: 8px;
-      font-size: 0.58rem;
-      letter-spacing: 0.12em;
+      font-size: 0.62rem;
+      letter-spacing: 0.14em;
       text-transform: uppercase;
       color: var(--crowl-muted);
-      opacity: 0.5;
+      opacity: 0.55;
     }
 
     .footer-credit a {
-      color: inherit;
+      color: var(--crowl-accent);
       text-decoration: none;
-      border-bottom: 1px solid rgba(138,134,116,0.3);
+      border-bottom: 1px solid rgba(200,184,122,0.3);
       padding-bottom: 1px;
       transition: opacity 0.2s ease;
     }
