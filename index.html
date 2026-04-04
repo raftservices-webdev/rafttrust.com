@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Raft Services</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --raft-bg: #f5f0e8;
+      --raft-ink: #1a1a14;
+      --raft-muted: #7a7060;
+      --raft-accent: #3d6b5e;
+
+      --crowl-bg: #111108;
+      --crowl-ink: #f0ece2;
+      --crowl-muted: #8a8674;
+      --crowl-accent: #c8b87a;
+
+      --transition: 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+      --footer-h: 52px;
+    }
+
+    html, body {
+      height: 100%;
+      overflow: hidden;
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      display: flex;
+      flex-direction: column;
+      height: 100dvh;
+    }
+
+    /* ── Header ─────────────────────────────────────── */
+    header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 22px 40px;
+      background: var(--raft-bg);
+      pointer-events: none;
+    }
+
+    header::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 10%;
+      right: 10%;
+      height: 1px;
+      background: linear-gradient(to right,
+        transparent,
+        rgba(61,107,94,0.18) 30%,
+        rgba(61,107,94,0.18) 70%,
+        transparent
+      );
+    }
+
+    .wordmark {
+      font-family: 'Cormorant Garamond', serif;
+      font-weight: 500;
+      font-size: 1.05rem;
+      letter-spacing: 0.38em;
+      text-transform: uppercase;
+      color: var(--raft-ink);
+      user-select: none;
+    }
+
+    .wordmark-sub {
+      font-family: 'Cormorant Garamond', serif;
+      font-style: italic;
+      font-weight: 300;
+      font-size: 0.78rem;
+      letter-spacing: 0.16em;
+      color: var(--raft-accent);
+    }
+
+    /* ── Split layout ────────────────────────────────── */
+    .split {
+      display: flex;
+      flex: 1;
+      height: calc(100dvh - var(--footer-h));
+      position: relative;
+    }
+
+    .panel {
+      position: relative;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      text-decoration: none;
+      overflow: hidden;
+      transition: flex var(--transition);
+    }
+
+    .split:hover .panel { flex: 0.72; }
+    .split:hover .panel:hover { flex: 1.28; }
+
+    /* ── Left — Raft Foundation ──────────────────────── */
+    .panel--foundation {
+      background-color: var(--raft-bg);
+    }
+
+    .panel--foundation::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 60% 50% at 30% 60%, rgba(61,107,94,0.10) 0%, transparent 70%),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+      pointer-events: none;
+    }
+
+    /* ── Right — Crowl Digital ───────────────────────── */
+    .panel--crowl {
+      background-color: var(--crowl-bg);
+    }
+
+    .panel--crowl::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 55% 45% at 70% 40%, rgba(200,184,122,0.07) 0%, transparent 65%),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+    }
+
+    /* ── Panel content ───────────────────────────────── */
+    .panel-inner {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 13px;
+      padding: 48px 40px;
+      transform: translateY(6px);
+      transition: transform var(--transition);
+    }
+
+    .panel:hover .panel-inner {
+      transform: translateY(0);
+    }
+
+    /* Line 1 — Category tag */
+    .tag {
+      font-size: 0.6rem;
+      font-weight: 500;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+    }
+
+    .panel--foundation .tag  { color: var(--raft-accent); }
+    .panel--crowl .tag       { color: var(--crowl-accent); }
+
+    /* Line 2 — Name */
+    .name {
+      font-family: 'Cormorant Garamond', serif;
+      font-weight: 300;
+      font-size: clamp(2.8rem, 4.8vw, 4.4rem);
+      line-height: 1.04;
+      letter-spacing: -0.01em;
+    }
+
+    .panel--foundation .name { color: var(--raft-ink); }
+    .panel--crowl .name      { color: var(--crowl-ink); }
+
+    /* Line 3 — Sector */
+    .sector {
+      font-family: 'Cormorant Garamond', serif;
+      font-style: italic;
+      font-size: 1.05rem;
+      font-weight: 300;
+      letter-spacing: 0.02em;
+    }
+
+    .panel--foundation .sector { color: var(--raft-accent); }
+    .panel--crowl .sector      { color: var(--crowl-accent); }
+
+    /* Thin rule */
+    .rule {
+      width: 28px;
+      height: 1px;
+      opacity: 0.2;
+    }
+
+    .panel--foundation .rule { background: var(--raft-ink); }
+    .panel--crowl .rule      { background: var(--crowl-ink); }
+
+    /* Line 4 — Service dots */
+    .descriptor {
+      font-size: 0.68rem;
+      font-weight: 300;
+      letter-spacing: 0.06em;
+      line-height: 2;
+    }
+
+    .panel--foundation .descriptor { color: var(--raft-muted); }
+    .panel--crowl .descriptor      { color: var(--crowl-muted); }
+
+    /* Visit link */
+    .link-hint {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 6px;
+      font-size: 0.62rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      font-weight: 500;
+      border-bottom: 1px solid;
+      padding-bottom: 2px;
+      opacity: 0;
+      transform: translateY(5px);
+      transition: opacity 0.35s ease, transform 0.35s ease;
+    }
+
+    .panel:hover .link-hint {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .panel--foundation .link-hint { color: var(--raft-accent); border-color: var(--raft-accent); }
+    .panel--crowl .link-hint      { color: var(--crowl-accent); border-color: var(--crowl-accent); }
+
+    .link-hint svg {
+      width: 10px;
+      height: 10px;
+      transition: transform 0.25s ease;
+    }
+
+    .panel:hover .link-hint svg { transform: translateX(3px); }
+
+    /* Corner URLs */
+    .corner-url {
+      position: absolute;
+      bottom: 24px;
+      font-size: 0.58rem;
+      letter-spacing: 0.15em;
+      text-transform: lowercase;
+      opacity: 0;
+      transition: opacity 0.4s ease;
+    }
+
+    .panel--foundation .corner-url { right: 28px; color: var(--raft-muted); }
+    .panel--crowl .corner-url      { left: 28px;  color: var(--crowl-muted); }
+
+    .panel:hover .corner-url { opacity: 0.5; }
+
+    /* ── Divider line ────────────────────────────────── */
+    .divider {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 50%;
+      width: 1px;
+      background: linear-gradient(
+        to bottom,
+        transparent 0%,
+        rgba(120,110,85,0.28) 15%,
+        rgba(120,110,85,0.28) 85%,
+        transparent 100%
+      );
+      z-index: 10;
+      pointer-events: none;
+    }
+
+    /* ── Footer ──────────────────────────────────────── */
+    footer {
+      height: var(--footer-h);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 40px;
+      background: var(--crowl-bg);
+      position: relative;
+      z-index: 50;
+      flex-shrink: 0;
+    }
+
+    /* Hairline top border */
+    footer::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 10%;
+      right: 10%;
+      height: 1px;
+      background: linear-gradient(to right,
+        rgba(61,107,94,0.2) 0%,
+        rgba(120,110,85,0.15) 50%,
+        rgba(200,184,122,0.2) 100%
+      );
+    }
+
+    .footer-text {
+      font-family: 'Cormorant Garamond', serif;
+      font-style: italic;
+      font-size: 1.05rem;
+      font-weight: 300;
+      letter-spacing: 0.06em;
+      text-align: center;
+      color: var(--crowl-ink);
+      opacity: 0.75;
+    }
+
+    .footer-credit {
+      position: absolute;
+      bottom: 8px;
+      font-size: 0.58rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--crowl-muted);
+      opacity: 0.5;
+    }
+
+    .footer-credit a {
+      color: inherit;
+      text-decoration: none;
+      border-bottom: 1px solid rgba(138,134,116,0.3);
+      padding-bottom: 1px;
+      transition: opacity 0.2s ease;
+    }
+
+    .footer-credit a:hover { opacity: 1; }
+
+    /* ── Mobile ──────────────────────────────────────── */
+    @media (max-width: 640px) {
+      html, body { overflow: auto; }
+
+      .split {
+        flex-direction: column;
+        height: auto;
+      }
+
+      .panel {
+        flex: none;
+        height: 50dvh;
+        min-height: 300px;
+      }
+
+      .split:hover .panel,
+      .split:hover .panel:hover { flex: none; }
+
+      .panel-inner { gap: 11px; padding: 32px 24px; }
+
+      .name { font-size: clamp(2.4rem, 10vw, 3rem); }
+
+      .divider {
+        top: 50%;
+        bottom: auto;
+        left: 0;
+        right: 0;
+        width: 100%;
+        height: 1px;
+        background: linear-gradient(
+          to right,
+          transparent 0%,
+          rgba(120,110,85,0.28) 20%,
+          rgba(120,110,85,0.28) 80%,
+          transparent 100%
+        );
+      }
+
+      .link-hint { opacity: 1; transform: none; }
+      .corner-url { display: none; }
+
+      footer {
+        height: auto;
+        padding: 16px 24px 20px;
+        background: var(--crowl-bg);
+      }
+
+      header { position: static; padding: 22px 24px 0; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:5px;"><span class="wordmark">Our Two Initiatives</span><span class="wordmark-sub">One Business &nbsp;&middot;&nbsp; One Service</span></div>
+  </header>
+
+  <main class="split">
+
+    <!-- Left: Raft Foundation -->
+    <a class="panel panel--foundation" href="https://raftfoundation.in" target="_blank" rel="noopener">
+      <div class="panel-inner">
+        <span class="tag">Social Initiative</span>
+        <h2 class="name">Raft<br>Foundation</h2>
+        <p class="sector">Counselling &amp; Training</p>
+        <div class="rule"></div>
+        <p class="descriptor">
+          Mental Health &nbsp;·&nbsp; Counselling<br>
+          Coaching &nbsp;·&nbsp; Life Skills
+        </p>
+        <span class="link-hint">
+          Visit raftfoundation.in
+          <svg viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M1 9L9 1M9 1H3M9 1V7" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </span>
+      </div>
+      <span class="corner-url">raftfoundation.in</span>
+    </a>
+
+    <div class="divider"></div>
+
+    <!-- Right: Crowl Digital -->
+    <a class="panel panel--crowl" href="https://crowldigital.com" target="_blank" rel="noopener">
+      <div class="panel-inner">
+        <span class="tag">Business Initiative</span>
+        <h2 class="name">Crowl<br>Digital</h2>
+        <p class="sector">Web Development &amp; Digital Strategy Consulting</p>
+        <div class="rule"></div>
+        <p class="descriptor">
+          Custom-built Websites &nbsp;·&nbsp; Digital Strategy<br>
+          &mdash; Presence, Branding &amp; Commerce
+        </p>
+        <span class="link-hint">
+          Visit crowldigital.com
+          <svg viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M1 9L9 1M9 1H3M9 1V7" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </span>
+      </div>
+      <span class="corner-url">crowldigital.com</span>
+    </a>
+
+  </main>
+
+  <footer>
+    <p class="footer-text">Raft Foundation and Crowl Digital are the two arms of Raft Services.</p>
+    <p class="footer-credit">Designed &amp; Developed by <a href="https://crowldigital.com" target="_blank" rel="noopener">Crowl Digital</a></p>
+  </footer>
+
+</body>
+</html>
